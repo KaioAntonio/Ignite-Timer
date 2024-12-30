@@ -6,19 +6,46 @@ import { CountdownContainer,
     Separator, 
     StartCountdownButton, 
     TaskInput } from "./styles";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as zod from 'zod';
+
+// Controlled -> Mantem em tempo real o usuário dentro do estado | 
+// Beneficio: Facilmente ter acesso aos valores, facilmente refletir valores nas interfaces
+
+// Uncontrolled -> Busca a informação somente quando precissar | Ganho em performance
+
+const newCycleFormValidationSchema = zod.object({
+    task: zod.string().min(1, 'Informe a tarefa'),
+    minutesAmout: zod.number().min(5, 'O ciclo precisa ser de no mínimo 60 minutos')
+    .max(60, 'O ciclo precisa ser de no máximo 60 minutos'),
+})
 
 export function Home() {
+
+    const {register, handleSubmit, watch } = useForm({
+        resolver: zodResolver(newCycleFormValidationSchema),
+    });
+
+    function handleCreateNewCycle(data: any) {
+        console.log(data)
+    }
+
+    const task = watch('task')
+    const isSubmitDisabled = !task;
+
     return (
         <HomeContainer>
-            <form action="">    
+            <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">    
             <FormContainer>
                 <div>
                     <label htmlFor="">Vou trabalhar em</label>
                     <TaskInput 
                         id="task" 
                         placeholder="Dê um nome para o seu projeto" 
-                        list="task-suggestions"
-                        />
+                        list="task-suggestions"     
+                        {...register('task')}
+                    />
 
                     <datalist id="task-suggestions">
                         <option value="Projeto 1"></option>
@@ -34,6 +61,7 @@ export function Home() {
                         step={5}
                         min={5}
                         max={60}
+                        {...register('minutesAmount', {valueAsNumber: true})}
                         />
 
                     <span>minutos.</span>
@@ -48,7 +76,7 @@ export function Home() {
                 <span>0</span>
             </CountdownContainer>
 
-            <StartCountdownButton type="submit">
+            <StartCountdownButton disabled={isSubmitDisabled} type="submit">
                 <Play />
                 Começar</StartCountdownButton>
     
